@@ -1,85 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
 
-abstract class Expression
+public class UnsupportedOperationException : Exception
 {
-    public abstract int Interpret();
-}
-
-class NumberExpression : Expression
-{
-    private int _number;
-
-    public NumberExpression(int number)
+    public UnsupportedOperationException() : base("Unsupported operation")
     {
-        _number = number;
-    }
-
-    public override int Interpret()
-    {
-        return _number;
     }
 }
 
-class AdditionExpression : Expression
+public class ExpressionParser
 {
-    private Expression _left;
-    private Expression _right;
-
-    public AdditionExpression(Expression left, Expression right)
+    public void ParseExpression(string[] tokens)
     {
-        _left = left;
-        _right = right;
-    }
-
-    public override int Interpret()
-    {
-        return _left.Interpret() + _right.Interpret();
-    }
-
-   
-}
-
-class SubtractionExpression : Expression
-{
-    private Expression _left;
-    private Expression _right;
-
-    public SubtractionExpression(Expression left, Expression right)
-    {
-        _left = left;
-        _right = right;
-    }
-
-    public override int Interpret()
-    {
-        return _left.Interpret() - _right.Interpret();
-    }
-}
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.WriteLine("Enter first number, operation '+' or '-', second number and press Enter:");
-        string input = Console.ReadLine();
-
-        string[] tokens = input.Split(' ');
-
-        if (tokens.Length != 3)
+        if (tokens.Length < 3)
         {
             Console.WriteLine("Invalid expression format");
             return;
         }
 
-        if (!int.TryParse(tokens[0], out int firstNumber) || !int.TryParse(tokens[2], out int secondNumber))
-        {
-            Console.WriteLine("Invalid number format");
-            return;
-        }
+        double firstNumber = double.Parse(tokens[0]);
+        double secondNumber = double.Parse(tokens[2]);
 
         char operation = char.Parse(tokens[1]);
         Expression expression;
+
         switch (operation)
         {
             case '+':
@@ -89,9 +32,66 @@ class Program
                 expression = new SubtractionExpression(new NumberExpression(firstNumber), new NumberExpression(secondNumber));
                 break;
             default:
-                Console.WriteLine("Unsupported operation");
-                return;
+                throw new UnsupportedOperationException();
         }
+
         Console.WriteLine($"Result: {expression.Interpret()}");
     }
+}
+
+public interface Expression
+{
+    double Interpret();
+}
+
+public class NumberExpression : Expression
+{
+    private readonly double _number;
+
+    public NumberExpression(double number)
+    {
+        _number = number;
+    }
+
+    public double Interpret()
+    {
+        return _number;
+    }
+}
+
+public class AdditionExpression : Expression
+{
+    private readonly Expression _expression1;
+    private readonly Expression _expression2;
+
+    public AdditionExpression(Expression expression1, Expression expression2)
+    {
+        _expression1 = expression1;
+        _expression2 = expression2;
+    }
+
+    public double Interpret()
+    {
+        return _expression1.Interpret() + _expression2.Interpret();
+    }
+}
+
+public class SubtractionExpression : Expression
+{
+    private readonly Expression _expression1;
+    private readonly Expression _expression2;
+
+    public SubtractionExpression(Expression expression1, Expression expression2)
+    {
+        _expression1 = expression1;
+        _expression2 = expression2;
+    }
+
+    public double Interpret()
+    {
+        return _expression1.Interpret() - _expression2.Interpret();
+    }
+
+    
+
 }
